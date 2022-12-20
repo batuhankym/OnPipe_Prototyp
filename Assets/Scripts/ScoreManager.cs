@@ -7,11 +7,10 @@ public class ScoreManager : MonoBehaviour
 {
   
    public TextMeshProUGUI scoreText;
-    private int _score;
+   private int _score = 0;
 
     private void Start()
     {
-        scoreText = GetComponent<TextMeshProUGUI>();
 
 
     }
@@ -22,7 +21,7 @@ public class ScoreManager : MonoBehaviour
 
     public void IncreaseScore(int index)
     {
-        
+
         _score += index;
         scoreText.text = _score.ToString();
        

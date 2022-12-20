@@ -5,20 +5,23 @@ using Cinemachine;
 using UnityEngine;
 using DG.Tweening;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
     public GameManager gameManager;
     public LevelProgressUI levelProgressUI;
+
+    public SceneController sceneController;
     private ScoreManager scoreClass;
     
-    private int scoreToIncrease = 1;
-    private int currentScore = 0;
+    private int scoreToIncrease = 30;
 
 
 
     private Ease _motionType;
 
+    private bool isComplete;
     private bool _isGameStart;
 
     private float _fillAmount = 1000f;
@@ -32,6 +35,7 @@ public class PlayerController : MonoBehaviour
     {
         scoreClass = FindObjectOfType<ScoreManager>();
 
+        sceneController.GetComponent<SceneController>();
         levelProgressUI.GetComponent<LevelProgressUI>();
         gameManager.GetComponent<GameManager>();
         _isGameStart = false;
@@ -54,6 +58,11 @@ public class PlayerController : MonoBehaviour
                     transform.DOScale(1.5f, 0.5f);
                     break;
             }
+            if (isComplete)
+            {
+                sceneController.LoadNextScene();
+            
+            }
         }
 
         if (Input.GetMouseButtonUp(0))
@@ -63,12 +72,15 @@ public class PlayerController : MonoBehaviour
         
         if (explode)
         {
+            scoreClass.IncreaseScore(scoreToIncrease);
+
             Vector3 explosionPos = transform.position;
             Collider[] colliders = Physics.OverlapSphere(explosionPos, radius);
             foreach (Collider hit in colliders)
             {
                 if (hit.attachedRigidbody.CompareTag("Corn"))
                 {
+
 
                     ControlProgress();
                     hit.attachedRigidbody.AddExplosionForce(power, explosionPos, radius, lift);
@@ -77,29 +89,49 @@ public class PlayerController : MonoBehaviour
                     hit.gameObject.GetComponent<Collider>().isTrigger = false;
                     Destroy(hit.gameObject,0.5f);
                 }
+               
             }
         }
+
         
+
     }
     public void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.CompareTag("Corn"))
         {
-            scoreClass.IncreaseScore(scoreToIncrease);
-            currentScore += scoreToIncrease;
-
-
-
             explode = true;
             other.attachedRigidbody.isKinematic = false;
-            
         }
+
+        if (other.gameObject.CompareTag("Finish"))
+        {
+            isComplete = true;
+            gameManager.LevelCompleteUI();
+            gameManager.NewCamPos();
+            transform.DOScale(3f, 0.5f);
+            transform.Translate(0, speed * 50 * Time.deltaTime, 0 );
+
+
+         
+
+
+
+
+        }
+       
     }
+
+    private void OnTriggerExit(Collider other)
+    {
+        explode = false;
+    }
+ 
 
     private void ControlProgress()
     {
         levelProgressUI.UpdateProgressFill(_fillAmount);
     }
-
+    
     
 }
